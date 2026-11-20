@@ -1,108 +1,255 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ENCOR v1.2 — VXLAN, LISP &amp; Overlay Encapsulation Visualizer</title>
-  <script>
-    if (window.self === window.top) {
-      window.location.replace("https://qaswarh.github.io/4any1");
-    }
-  </script>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-
-<div class="page-layout">
-  <!-- Left Column: Searchable Architecture & Virtualization Knowledge Base -->
-  <aside class="glossary-panel">
-    <div class="glossary-search-wrap">
-      <input type="text" id="glossarySearch" class="glossary-search" placeholder="Filter Overlay terms (e.g., VXLAN, LISP, RLOC, SGT, SD-WAN)...">
-    </div>
-    <div id="glossaryNoResults" class="no-results hidden">No matching terms found.</div>
-
-    <div id="glossaryOverlay">
-      <h2>Architecture &amp; Overlay Knowledge Base</h2>
-      <p class="glossary-intro">ENCOR 350-401 v1.2 Domain 1 (Architecture — 15%) &amp; Domain 2 (Virtualization — 10%) reference.</p>
-
-      <div class="glossary-cat">VXLAN &amp; LISP Fabric</div>
-      <div class="term-card">
-        <h3>Underlay vs. Overlay Network</h3>
-        <p><strong>Underlay:</strong> The physical IP transport network (switches, routers, fiber, IGP/BGP) providing basic IP reachability. <strong>Overlay:</strong> Virtual logical tunnels (VXLAN, LISP, IPsec) built on top of the underlay to decouple virtual services from physical topology.</p>
-      </div>
-      <div class="term-card">
-        <h3>VXLAN — Virtual Extensible LAN (UDP 4789)</h3>
-        <p>MAC-in-UDP encapsulation that extends Layer 2 segments over a Layer 3 routed underlay. Replaces the 12-bit VLAN ID (4,096) with a <strong>24-bit VNI (16.7 million segments)</strong> and adds <strong>50 bytes</strong> of header overhead. Performed by <strong>VTEPs</strong> (VXLAN Tunnel Endpoints).</p>
-      </div>
-      <div class="term-card">
-        <h3>LISP — Locator/ID Separation Protocol (UDP 4341 / 4342)</h3>
-        <p>Separates <em>who</em> a device is (<strong>EID — Endpoint ID</strong>, its IP/MAC) from <em>where</em> it is attached (<strong>RLOC — Routing Locator</strong>, the Edge switch's loopback IP). Uses UDP <code>4341</code> for data plane and UDP <code>4342</code> for control plane Map-Request/Map-Reply messages.</p>
-      </div>
-      <div class="term-card">
-        <h3>LISP Roles (ITR, ETR, Map-Server, Map-Resolver)</h3>
-        <p><strong>ITR (Ingress Tunnel Router):</strong> Encapsulates packets entering the LISP fabric. <strong>ETR (Egress Tunnel Router):</strong> Decapsulates packets exiting the fabric. <strong>MS/MR (Control Plane Node):</strong> Maintains the EID-to-RLOC mapping database.</p>
-      </div>
-
-      <div class="glossary-cat">Cisco SD-Access &amp; SD-WAN</div>
-      <div class="term-card">
-        <h3>Cisco SD-Access Fabric &amp; SGTs</h3>
-        <p>Uses <strong>LISP</strong> for the Control Plane, <strong>VXLAN-GPO</strong> for the Data Plane, and <strong>Cisco ISE</strong> for Policy. Embeds a 16-bit <strong>SGT (Scalable Group Tag)</strong> inside the VXLAN header for IP-agnostic micro-segmentation (SGACLs), while VRFs provide macro-segmentation (VNs).</p>
-      </div>
-      <div class="term-card">
-        <h3>Cisco SD-WAN Planes (vManage, vSmart, vBond, OMP)</h3>
-        <p><strong>vManage:</strong> Management plane (GUI/API dashboard). <strong>vSmart:</strong> Control plane running <strong>OMP (Overlay Management Protocol)</strong> over DTLS/TLS to distribute routes, TLOCs, and policies. <strong>vBond:</strong> Orchestration plane handling zero-touch onboarding and NAT traversal. <strong>WAN Edge:</strong> Data plane (IPsec/GRE).</p>
-      </div>
-
-      <div class="glossary-cat">Virtualization &amp; Tunneling</div>
-      <div class="term-card">
-        <h3>VRF — Virtual Routing and Forwarding</h3>
-        <p>Virtualizes a single physical router into multiple isolated Layer 3 routing tables and FIBs—allowing overlapping IP subnets across separate tenants or Virtual Networks (VNs).</p>
-      </div>
-      <div class="term-card">
-        <h3>GRE &amp; IPsec Overhead (MTU Impact)</h3>
-        <p><strong>GRE (IP Protocol 47):</strong> Adds <code>24 bytes</code> (20B outer IP + 4B GRE) and supports multicast/dynamic routing protocols. <strong>IPsec ESP Tunnel Mode:</strong> Adds ~<code>50–56 bytes</code> (AES-256 + SHA-256). Always adjust interface <code>ip mtu 1400</code> and <code>ip tcp adjust-mss 1360</code> to prevent fragmentation.</p>
-      </div>
-    </div>
-  </aside>
-  <!-- Right Column: Interactive Encapsulation & SD-Access Visualizer -->
-  <main class="visualizer-column">
-    <div class="net-widget">
-      <div class="sim-header">
-        <div>
-          <h1>Overlay Encapsulation &amp; SD-Access Fabric Visualizer</h1>
-          <p class="sim-sub">Select a tunneling protocol to inspect its outer-to-inner header stack, UDP/IP numbers, and byte overhead.</p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      ENCOR v1.2 — VXLAN, LISP &amp; Overlay Encapsulation Visualizer
+    </title>
+    <script>
+      if (window.self === window.top) {
+        window.location.replace("https://qaswarh.github.io/4any1");
+      }
+    </script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="page-layout">
+      <!-- Left Column: Searchable Architecture & Virtualization Knowledge Base -->
+      <aside class="glossary-panel">
+        <div class="glossary-search-wrap">
+          <input
+            type="text"
+            id="glossarySearch"
+            class="glossary-search"
+            placeholder="Filter Overlay terms (e.g., VXLAN, LISP, RLOC, SGT, SD-WAN)..."
+          />
         </div>
-        <select id="encapSelect" class="encap-select">
-          <option value="vxlan">VXLAN-GPO (SD-Access Data Plane — UDP 4789)</option>
-          <option value="lisp">LISP Encapsulation (Control/Data — UDP 4341)</option>
-          <option value="gre">Standard GRE Tunnel (IP Protocol 47)</option>
-          <option value="gre-ipsec">GRE over IPsec Tunnel Mode (ESP — IP Proto 50)</option>
-        </select>
-      </div>
-
-      <!-- Overhead & MTU Metrics Bar -->
-      <div class="metrics-bar" id="metricsBar"></div>
-
-      <!-- Visual Packet Header Stack (Outer Left -> Inner Payload Right) -->
-      <div class="stack-label">Wire-Level Frame Structure (Outer Underlay Headers → Original Inner Frame)</div>
-      <div class="header-stack" id="headerStack"></div>
-
-      <!-- Header Field Breakdown -->
-      <div class="encap-detail" id="encapDetail"></div>
-
-      <!-- Interactive SD-Access / LISP Packet Walk Stepper -->
-      <div class="walk-box">
-        <div class="walk-head">
-          <span>SD-Access / LISP Fabric Packet Walk (Click Any Step)</span>
-          <span class="walk-tag">EID → RLOC Lookup &amp; VXLAN Forwarding</span>
+        <div id="glossaryNoResults" class="no-results hidden">
+          No matching terms found.
         </div>
-        <div class="walk-pills" id="walkPills"></div>
-        <div class="walk-detail" id="walkDetail"></div>
-      </div>
-    </div>
-  </main>
-</div>
 
-<script src="script.js"></script>
-</body>
+        <div id="glossaryOverlay">
+          <h2>Architecture &amp; Overlay Knowledge Base</h2>
+          <p class="glossary-intro">
+            ENCOR 350-401 v1.2 Domain 1 (Architecture — 15%) &amp; Domain 2
+            (Virtualization — 10%) reference.
+          </p>
+
+          <div class="glossary-cat">VXLAN &amp; LISP Fabric</div>
+          <div class="term-card">
+            <h3>Underlay vs. Overlay Network</h3>
+            <p>
+              <strong>Underlay:</strong> The physical IP transport network
+              (switches, routers, fiber, IGP/BGP) providing basic IP
+              reachability. <strong>Overlay:</strong> Virtual logical tunnels
+              (VXLAN, LISP, IPsec) built on top of the underlay to decouple
+              virtual services from physical topology.
+            </p>
+          </div>
+          <div class="term-card">
+            <h3>VXLAN — Virtual Extensible LAN (UDP 4789)</h3>
+            <p>
+              MAC-in-UDP encapsulation that extends Layer 2 segments over a
+              Layer 3 routed underlay. Replaces the 12-bit VLAN ID (4,096) with
+              a <strong>24-bit VNI (16.7 million segments)</strong> and adds
+              <strong>50 bytes</strong> of header overhead. Performed by
+              <strong>VTEPs</strong> (VXLAN Tunnel Endpoints).
+            </p>
+          </div>
+          <div class="term-card">
+            <h3>LISP — Locator/ID Separation Protocol (UDP 4341 / 4342)</h3>
+            <p>
+              Separates <em>who</em> a device is (<strong
+                >EID — Endpoint ID</strong
+              >, its IP/MAC) from <em>where</em> it is attached (<strong
+                >RLOC — Routing Locator</strong
+              >, the Edge switch's loopback IP). Uses UDP <code>4341</code> for
+              data plane and UDP <code>4342</code> for control plane
+              Map-Request/Map-Reply messages.
+            </p>
+          </div>
+          <div class="term-card">
+            <h3>LISP Roles (ITR, ETR, Map-Server, Map-Resolver)</h3>
+            <p>
+              <strong>ITR (Ingress Tunnel Router):</strong> Encapsulates packets
+              entering the LISP fabric.
+              <strong>ETR (Egress Tunnel Router):</strong> Decapsulates packets
+              exiting the fabric.
+              <strong>MS/MR (Control Plane Node):</strong> Maintains the
+              EID-to-RLOC mapping database.
+            </p>
+          </div>
+
+          <div class="glossary-cat">Cisco SD-Access &amp; SD-WAN</div>
+          <div class="term-card">
+            <h3>Cisco SD-Access Fabric &amp; SGTs</h3>
+            <p>
+              Uses <strong>LISP</strong> for the Control Plane,
+              <strong>VXLAN-GPO</strong> for the Data Plane, and
+              <strong>Cisco ISE</strong> for Policy. Embeds a 16-bit
+              <strong>SGT (Scalable Group Tag)</strong> inside the VXLAN header
+              for IP-agnostic micro-segmentation (SGACLs), while VRFs provide
+              macro-segmentation (VNs).
+            </p>
+          </div>
+          <div class="term-card">
+            <h3>Cisco SD-WAN Planes (vManage, vSmart, vBond, OMP)</h3>
+            <p>
+              <strong>vManage:</strong> Management plane (GUI/API dashboard).
+              <strong>vSmart:</strong> Control plane running
+              <strong>OMP (Overlay Management Protocol)</strong> over DTLS/TLS
+              to distribute routes, TLOCs, and policies.
+              <strong>vBond:</strong> Orchestration plane handling zero-touch
+              onboarding and NAT traversal. <strong>WAN Edge:</strong> Data
+              plane (IPsec/GRE).
+            </p>
+          </div>
+
+          <div class="glossary-cat">Virtualization &amp; Tunneling</div>
+          <div class="term-card">
+            <h3>GRE — Generic Routing Encapsulation (IP Protocol 47)</h3>
+            <p>
+              <strong>Generic Routing Encapsulation</strong> wraps Layer 3
+              packets (including multicast and dynamic routing updates like
+              OSPF/EIGRP) inside a <code>4-byte</code> GRE header and
+              <code>20-byte</code> outer IPv4 header (<code>24 bytes</code>
+              total overhead), with no built-in encryption.
+            </p>
+          </div>
+          <div class="term-card">
+            <h3>IPsec ESP — Encapsulating Security Payload (IP Protocol 50)</h3>
+            <p>
+              <strong>Encapsulating Security Payload (ESP)</strong> provides
+              confidentiality, integrity, and authentication for IPsec tunnels.
+              Uses <strong>AES</strong> (Advanced Encryption Standard) for
+              payload encryption, <strong>IV</strong> (Initialization Vector)
+              for block randomization, <strong>SHA</strong> (Secure Hash
+              Algorithm) to compute the <strong>ICV</strong> (Integrity Check
+              Value), and a 32-bit <strong>SPI</strong> (Security Parameter
+              Index) to identify the Security Association.
+            </p>
+          </div>
+          <div class="term-card">
+            <h3>
+              MTU &amp; TCP MSS (Maximum Transmission Unit / Segment Size)
+            </h3>
+            <p>
+              <strong>MTU (Maximum Transmission Unit):</strong> Largest Layer 3
+              packet (default <code>1500 bytes</code>) an interface forwards
+              without fragmentation.
+              <strong>MSS (Maximum Segment Size):</strong> Largest TCP payload
+              (typically <code>1460 bytes</code> on Ethernet, or
+              <code>1360 bytes</code> over IPsec tunnels) negotiated during the
+              TCP 3-way handshake.
+            </p>
+          </div>
+          <div class="term-card">
+            <h3>
+              SD-Access Fabric Acronyms (VTEP, VNI, EID, RLOC, MS/MR, SGT,
+              SGACL)
+            </h3>
+            <p>
+              <strong>VTEP:</strong> VXLAN Tunnel Endpoint.
+              <strong>VNI:</strong> Virtual Network Identifier (24-bit).
+              <strong>EID:</strong> Endpoint Identifier (host IP/MAC).
+              <strong>RLOC:</strong> Routing Locator (edge switch loopback IP).
+              <strong>ITR / ETR:</strong> Ingress / Egress Tunnel Router.
+              <strong>MS / MR:</strong> LISP Map-Server / Map-Resolver.
+              <strong>VN:</strong> Virtual Network (VRF macro-segment).
+              <strong>SGT &amp; SGACL:</strong> 16-bit Scalable Group Tag &amp;
+              Security Group ACL (micro-segmentation).
+            </p>
+          </div>
+          <div class="term-card">
+            <h3>SD-WAN Acronyms (OMP, TLOC, DTLS/TLS)</h3>
+            <p>
+              <strong>OMP (Overlay Management Protocol):</strong> Control-plane
+              protocol between vSmart controllers and WAN Edge routers over
+              encrypted <strong>DTLS/TLS</strong> tunnels.
+              <strong>TLOC (Transport Locator):</strong> Identifies a WAN Edge
+              transport interface by System IP, Color (e.g., MPLS,
+              biz-internet), and Encapsulation (IPsec/GRE).
+            </p>
+          </div>
+
+          <div class="term-card">
+            <h3>VRF — Virtual Routing and Forwarding</h3>
+            <p>
+              Virtualizes a single physical router into multiple isolated Layer
+              3 routing tables and FIBs—allowing overlapping IP subnets across
+              separate tenants or Virtual Networks (VNs).
+            </p>
+          </div>
+          <div class="term-card">
+            <h3>GRE &amp; IPsec Overhead (MTU Impact)</h3>
+            <p>
+              <strong>GRE (IP Protocol 47):</strong> Adds
+              <code>24 bytes</code> (20B outer IP + 4B GRE) and supports
+              multicast/dynamic routing protocols.
+              <strong>IPsec ESP Tunnel Mode:</strong> Adds ~<code
+                >50–56 bytes</code
+              >
+              (AES-256 + SHA-256). Always adjust interface
+              <code>ip mtu 1400</code> and
+              <code>ip tcp adjust-mss 1360</code> to prevent fragmentation.
+            </p>
+          </div>
+        </div>
+      </aside>
+      <!-- Right Column: Interactive Encapsulation & SD-Access Visualizer -->
+      <main class="visualizer-column">
+        <div class="net-widget">
+          <div class="sim-header">
+            <div>
+              <h1>Overlay Encapsulation &amp; SD-Access Fabric Visualizer</h1>
+              <p class="sim-sub">
+                Select a tunneling protocol to inspect its outer-to-inner header
+                stack, UDP/IP numbers, and byte overhead.
+              </p>
+            </div>
+            <select id="encapSelect" class="encap-select">
+              <option value="vxlan">
+                VXLAN-GPO (SD-Access Data Plane — UDP 4789)
+              </option>
+              <option value="lisp">
+                LISP Encapsulation (Control/Data — UDP 4341)
+              </option>
+              <option value="gre">Standard GRE Tunnel (IP Protocol 47)</option>
+              <option value="gre-ipsec">
+                GRE over IPsec Tunnel Mode (ESP — IP Proto 50)
+              </option>
+            </select>
+          </div>
+
+          <!-- Overhead & MTU Metrics Bar -->
+          <div class="metrics-bar" id="metricsBar"></div>
+
+          <!-- Visual Packet Header Stack (Outer Left -> Inner Payload Right) -->
+          <div class="stack-label">
+            Wire-Level Frame Structure (Outer Underlay Headers → Original Inner
+            Frame)
+          </div>
+          <div class="header-stack" id="headerStack"></div>
+
+          <!-- Header Field Breakdown -->
+          <div class="encap-detail" id="encapDetail"></div>
+
+          <!-- Interactive SD-Access / LISP Packet Walk Stepper -->
+          <div class="walk-box">
+            <div class="walk-head">
+              <span>SD-Access / LISP Fabric Packet Walk (Click Any Step)</span>
+              <span class="walk-tag"
+                >EID → RLOC Lookup &amp; VXLAN Forwarding</span
+              >
+            </div>
+            <div class="walk-pills" id="walkPills"></div>
+            <div class="walk-detail" id="walkDetail"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
 </html>
