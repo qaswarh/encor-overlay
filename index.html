@@ -146,30 +146,57 @@
           </div>
           <div class="term-card">
             <h3>
-              SD-Access Fabric Acronyms (VTEP, VNI, EID, RLOC, MS/MR, SGT,
-              SGACL)
+              SD-Access Fabric Concepts &amp; Acronyms (VTEP, VNI, EID, RLOC,
+              MS/MR, SGT, SGACL)
             </h3>
             <p>
-              <strong>VTEP:</strong> VXLAN Tunnel Endpoint.
-              <strong>VNI:</strong> Virtual Network Identifier (24-bit).
-              <strong>EID:</strong> Endpoint Identifier (host IP/MAC).
-              <strong>RLOC:</strong> Routing Locator (edge switch loopback IP).
-              <strong>ITR / ETR:</strong> Ingress / Egress Tunnel Router.
-              <strong>MS / MR:</strong> LISP Map-Server / Map-Resolver.
-              <strong>VN:</strong> Virtual Network (VRF macro-segment).
-              <strong>SGT &amp; SGACL:</strong> 16-bit Scalable Group Tag &amp;
-              Security Group ACL (micro-segmentation).
+              <strong>Cisco SD-Access:</strong> Separates underlay IP routing
+              (IS-IS) from overlay fabric mobility and policy.
+              <strong
+                >Control Plane — LISP (Locator/ID Separation Protocol):</strong
+              >
+              Maps an endpoint's
+              <strong>EID (Endpoint Identifier — host IP/MAC)</strong> to an
+              <strong
+                >RLOC (Routing Locator — fabric edge switch loopback IP)</strong
+              >
+              inside a central
+              <strong>MS / MR (Map-Server / Map-Resolver)</strong> using
+              <strong>ITR / ETR (Ingress / Egress Tunnel Router)</strong> roles
+              so hosts can roam across subnets without re-IPing.
+              <strong>Data Plane — VXLAN (Virtual Extensible LAN):</strong>
+              Encapsulates Layer 2 Ethernet frames inside Layer 3 UDP packets
+              (port <code>4789</code>) via a
+              <strong>VTEP (VXLAN Tunnel Endpoint)</strong>, carrying a 24-bit
+              <strong>VNI (VXLAN Network Identifier)</strong> for Layer 2
+              isolation, a
+              <strong>VN (Virtual Network — VRF macro-segment)</strong> for
+              Layer 3 routing isolation, and a 16-bit
+              <strong>SGT (Scalable Group Tag)</strong> enforced by an
+              <strong>SGACL (Security Group ACL)</strong> for role-based
+              micro-segmentation.
             </p>
           </div>
           <div class="term-card">
-            <h3>SD-WAN Acronyms (OMP, TLOC, DTLS/TLS)</h3>
+            <h3>SD-WAN Concepts &amp; Acronyms (OMP, TLOC, DTLS/TLS)</h3>
             <p>
-              <strong>OMP (Overlay Management Protocol):</strong> Control-plane
-              protocol between vSmart controllers and WAN Edge routers over
-              encrypted <strong>DTLS/TLS</strong> tunnels.
-              <strong>TLOC (Transport Locator):</strong> Identifies a WAN Edge
-              transport interface by System IP, Color (e.g., MPLS,
-              biz-internet), and Encapsulation (IPsec/GRE).
+              <strong>OMP (Overlay Management Protocol):</strong> TCP-based
+              control-plane protocol running inside encrypted
+              <strong
+                >DTLS / TLS (Datagram Transport Layer Security / Transport Layer
+                Security)</strong
+              >
+              tunnels between <strong>vSmart</strong> controllers and
+              <strong>WAN Edge (cEdge/vEdge)</strong> routers to advertise OMP
+              routes, TLOCs, and centralized security/routing policies without
+              requiring full-mesh BGP peerings.
+              <strong>TLOC (Transport Locator):</strong> Uniquely identifies a
+              WAN Edge physical/logical transport attachment point by a
+              3-tuple—<strong>System IP</strong>, <strong>Color</strong> (e.g.,
+              <code>mpls</code>, <code>biz-internet</code>, <code>lte</code>),
+              and <strong>Encapsulation</strong> (<code>IPsec</code> or
+              <code>GRE</code>)—allowing vSmart and WAN Edges to dynamically
+              build encrypted data-plane tunnels across multiple WAN circuits.
             </p>
           </div>
 
